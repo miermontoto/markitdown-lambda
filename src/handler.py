@@ -30,9 +30,15 @@ def lambda_handler(event: Dict[str, Any], context: Optional[Any] = None) -> Any:
 
             # determinar tipo de respuesta de error
             if is_api_gateway_event(event):
-                return ResponseBuilder.api_gateway_response(
+                # para API Gateway, retornar error con headers CORS
+                headers = {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                }
+                return ResponseBuilder.error(
+                    message=error_msg,
                     status_code=400,
-                    body={'error': error_msg}
+                    headers=headers
                 )
             else:
                 raise ValueError(error_msg)
@@ -40,13 +46,18 @@ def lambda_handler(event: Dict[str, Any], context: Optional[Any] = None) -> Any:
     except Exception as e:
         print(f"Error in lambda handler: {str(e)}")
 
-        # determinar tipo de evento para respuesta de error apropiada
-        event_type = 'unknown'
+        # manejar error según el tipo de evento
         if is_api_gateway_event(event):
-            event_type = 'api_gateway'
-        elif isinstance(event, dict) and 'Records' in event:
-            event_type = 's3'
-        elif isinstance(event, dict) and 'content' in event:
-            event_type = 'direct'
-
-        return ResponseBuilder.error_response(e, event_type)
+            headers = {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            }
+            return ResponseBuilder.error(
+                message='Internal server error',
+                status_code=500,
+                details={'error': str(e)},
+                headers=headers
+            )
+        else:
+            # para otros tipos de eventos, relanzar la excepción
+            raise e

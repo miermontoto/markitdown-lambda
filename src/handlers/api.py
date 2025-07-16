@@ -4,7 +4,8 @@ from typing import Any, Dict, Optional
 from src.handlers.base import EventHandler
 from src.core.auth import validate_api_key
 from src.core.converters import convert_to_markdown
-from src.utils.utils import create_api_response, is_api_gateway_event
+from src.core.responses import ResponseBuilder
+from src.utils.utils import is_api_gateway_event
 
 
 class ApiHandler(EventHandler):
@@ -38,15 +39,31 @@ class ApiHandler(EventHandler):
     
     def _handle_api_gateway(self, event: Dict[str, Any]) -> Dict[str, Any]:
         """procesa requests de api gateway"""
+        # headers por defecto para API Gateway
+        api_headers = {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-API-Key',
+            'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
+        }
+        
         try:
             # validar autorización
             if not validate_api_key(event):
-                return create_api_response(401, {'error': 'Unauthorized'})
+                return ResponseBuilder.error(
+                    message='Unauthorized',
+                    status_code=401,
+                    headers=api_headers
+                )
 
             # obtener body del request
             body = event.get('body', '')
             if not body:
-                return create_api_response(400, {'error': 'Missing request body'})
+                return ResponseBuilder.error(
+                    message='Missing request body',
+                    status_code=400,
+                    headers=api_headers
+                )
 
             # decodificar base64 si es necesario
             if event.get('isBase64Encoded'):
@@ -61,7 +78,11 @@ class ApiHandler(EventHandler):
 
             # validar entrada
             if 'content' not in data:
-                return create_api_response(400, {'error': 'Missing content in request'})
+                return ResponseBuilder.error(
+                    message='Missing content in request',
+                    status_code=400,
+                    headers=api_headers
+                )
 
             content = data['content']
             filename = data.get('filename')
@@ -72,14 +93,19 @@ class ApiHandler(EventHandler):
 
             result = convert_to_markdown(content, filename)
 
-            return create_api_response(200, result)
+            return ResponseBuilder.success(
+                data=result,
+                headers=api_headers
+            )
 
         except Exception as e:
             print(f"Error in API handler: {str(e)}")
-            return create_api_response(500, {
-                'error': 'Internal server error',
-                'details': str(e)
-            })
+            return ResponseBuilder.error(
+                message='Internal server error',
+                status_code=500,
+                details={'error': str(e)},
+                headers=api_headers
+            )
     
     def _handle_direct_invocation(self, event: Dict[str, Any]) -> Dict[str, Any]:
         """procesa invocaciones directas lambda"""

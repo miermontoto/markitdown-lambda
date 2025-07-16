@@ -123,7 +123,7 @@ class TestApiHandler(unittest.TestCase):
         self.assertEqual(result['statusCode'], 500)
         body = json.loads(result['body'])
         self.assertEqual(body['error'], 'Internal server error')
-        self.assertIn('Conversion failed', body['details'])
+        self.assertIn('Conversion failed', body['details']['error'])
     
     @patch('src.handlers.api.convert_to_markdown')
     def test_handle_direct_invocation_success(self, mock_convert):

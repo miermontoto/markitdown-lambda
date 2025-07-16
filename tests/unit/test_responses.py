@@ -8,194 +8,191 @@ from src.core.responses import (
 
 
 class TestResponseBuilder(unittest.TestCase):
-    """pruebas para ResponseBuilder"""
+    """pruebas para ResponseBuilder genérico"""
     
-    def test_api_gateway_response_with_dict_body(self):
-        """prueba crear respuesta API Gateway con body dict"""
+    def test_build_basic_response(self):
+        """prueba construir respuesta básica"""
+        response = ResponseBuilder.build(200)
+        
+        self.assertEqual(response, {'statusCode': 200})
+    
+    def test_build_with_body_dict(self):
+        """prueba construir respuesta con body dict"""
         body = {"message": "Success", "data": {"id": 123}}
-        response = ResponseBuilder.api_gateway_response(200, body)
+        response = ResponseBuilder.build(200, body)
         
         self.assertEqual(response['statusCode'], 200)
-        self.assertIn('headers', response)
         self.assertIn('body', response)
-        
-        # verificar headers por defecto
-        headers = response['headers']
-        self.assertEqual(headers['Content-Type'], 'application/json')
-        self.assertEqual(headers['Access-Control-Allow-Origin'], '*')
-        self.assertIn('Access-Control-Allow-Headers', headers)
-        self.assertIn('Access-Control-Allow-Methods', headers)
-        
-        # verificar body es string JSON
         self.assertIsInstance(response['body'], str)
+        
         parsed_body = json.loads(response['body'])
         self.assertEqual(parsed_body['message'], 'Success')
         self.assertEqual(parsed_body['data']['id'], 123)
     
-    def test_api_gateway_response_with_string_body(self):
-        """prueba crear respuesta API Gateway con body string"""
-        body = "Plain text response"
-        response = ResponseBuilder.api_gateway_response(404, body)
+    def test_build_with_body_string(self):
+        """prueba construir respuesta con body string"""
+        response = ResponseBuilder.build(404, "Not found")
         
         self.assertEqual(response['statusCode'], 404)
-        self.assertEqual(response['body'], body)
+        self.assertEqual(response['body'], "Not found")
     
-    def test_api_gateway_response_with_custom_headers(self):
-        """prueba crear respuesta API Gateway con headers personalizados"""
-        body = {"status": "ok"}
-        custom_headers = {
-            'X-Custom-Header': 'custom-value',
-            'Content-Type': 'text/plain'  # sobrescribir default
+    def test_build_with_headers(self):
+        """prueba construir respuesta con headers"""
+        headers = {
+            'Content-Type': 'text/plain',
+            'X-Custom-Header': 'custom-value'
         }
+        response = ResponseBuilder.build(201, "Created", headers)
         
-        response = ResponseBuilder.api_gateway_response(201, body, custom_headers)
-        
-        headers = response['headers']
-        self.assertEqual(headers['X-Custom-Header'], 'custom-value')
-        self.assertEqual(headers['Content-Type'], 'text/plain')
-        # otros headers por defecto deben mantenerse
-        self.assertEqual(headers['Access-Control-Allow-Origin'], '*')
+        self.assertEqual(response['statusCode'], 201)
+        self.assertEqual(response['headers'], headers)
+        self.assertEqual(response['body'], "Created")
     
-    def test_s3_batch_response(self):
-        """prueba crear respuesta batch de S3"""
-        results = [
-            {"source": "file1.txt", "status": "success", "output": "file1.md"},
-            {"source": "file2.txt", "status": "success", "output": "file2.md"},
-            {"source": "file3.txt", "status": "error", "error": "Conversion failed"}
-        ]
+    def test_build_with_base64_encoded(self):
+        """prueba construir respuesta con base64"""
+        response = ResponseBuilder.build(200, "data", is_base64_encoded=True)
         
-        response = ResponseBuilder.s3_batch_response(results)
+        self.assertEqual(response['statusCode'], 200)
+        self.assertTrue(response['isBase64Encoded'])
+    
+    def test_success_response(self):
+        """prueba respuesta de éxito"""
+        data = {"result": "ok", "count": 5}
+        response = ResponseBuilder.success(data)
         
         self.assertEqual(response['statusCode'], 200)
         self.assertIn('body', response)
         
         body = json.loads(response['body'])
-        self.assertIn('results', body)
-        self.assertIn('summary', body)
-        
-        # verificar resumen
-        summary = body['summary']
-        self.assertEqual(summary['total'], 3)
-        self.assertEqual(summary['success'], 2)
-        self.assertEqual(summary['errors'], 1)
-        
-        # verificar resultados
-        self.assertEqual(len(body['results']), 3)
-        self.assertEqual(body['results'], results)
+        self.assertEqual(body['result'], 'ok')
+        self.assertEqual(body['count'], 5)
     
-    def test_s3_batch_response_all_success(self):
-        """prueba respuesta batch con todos exitosos"""
-        results = [
-            {"source": f"file{i}.txt", "status": "success", "output": f"file{i}.md"}
-            for i in range(5)
-        ]
+    def test_success_with_custom_status(self):
+        """prueba respuesta de éxito con status personalizado"""
+        response = ResponseBuilder.success("Created", status_code=201)
         
-        response = ResponseBuilder.s3_batch_response(results)
-        body = json.loads(response['body'])
-        
-        self.assertEqual(body['summary']['total'], 5)
-        self.assertEqual(body['summary']['success'], 5)
-        self.assertEqual(body['summary']['errors'], 0)
+        self.assertEqual(response['statusCode'], 201)
+        self.assertEqual(response['body'], "Created")
     
-    def test_s3_batch_response_all_errors(self):
-        """prueba respuesta batch con todos errores"""
-        results = [
-            {"source": f"file{i}.txt", "status": "error", "error": f"Error {i}"}
-            for i in range(3)
-        ]
+    def test_success_with_headers(self):
+        """prueba respuesta de éxito con headers"""
+        headers = {'Location': '/resource/123'}
+        response = ResponseBuilder.success(
+            {"id": 123},
+            status_code=201,
+            headers=headers
+        )
         
-        response = ResponseBuilder.s3_batch_response(results)
-        body = json.loads(response['body'])
-        
-        self.assertEqual(body['summary']['total'], 3)
-        self.assertEqual(body['summary']['success'], 0)
-        self.assertEqual(body['summary']['errors'], 3)
+        self.assertEqual(response['statusCode'], 201)
+        self.assertEqual(response['headers'], headers)
     
-    def test_direct_invocation_response_success(self):
-        """prueba respuesta de invocación directa exitosa"""
-        data = {
-            "markdown": "# Converted content",
-            "metadata": {"format": "md", "size": 100}
-        }
-        
-        response = ResponseBuilder.direct_invocation_response(True, data=data)
-        
-        # debe retornar los datos directamente
-        self.assertEqual(response, data)
-    
-    def test_direct_invocation_response_error(self):
-        """prueba respuesta de invocación directa con error"""
-        error_msg = "Processing failed"
-        
-        response = ResponseBuilder.direct_invocation_response(False, error=error_msg)
-        
-        self.assertIn('error', response)
-        self.assertIn('success', response)
-        self.assertEqual(response['error'], error_msg)
-        self.assertFalse(response['success'])
-    
-    def test_direct_invocation_response_invalid_state(self):
-        """prueba respuesta de invocación directa con estado inválido"""
-        # sin data ni error
-        with self.assertRaises(ValueError) as context:
-            ResponseBuilder.direct_invocation_response(True)
-        
-        self.assertIn("either data or error must be provided", str(context.exception))
-        
-        # success=True pero sin data
-        with self.assertRaises(ValueError):
-            ResponseBuilder.direct_invocation_response(True, error="error")
-        
-        # success=False pero sin error
-        with self.assertRaises(ValueError):
-            ResponseBuilder.direct_invocation_response(False, data={"test": "data"})
-    
-    def test_error_response_api_gateway(self):
-        """prueba respuesta de error para API Gateway"""
-        error = RuntimeError("Something went wrong")
-        response = ResponseBuilder.error_response(error, 'api_gateway')
+    def test_error_response_basic(self):
+        """prueba respuesta de error básica"""
+        response = ResponseBuilder.error("Something went wrong")
         
         self.assertEqual(response['statusCode'], 500)
-        self.assertIn('headers', response)
+        body = json.loads(response['body'])
+        self.assertEqual(body['error'], 'Something went wrong')
+    
+    def test_error_with_custom_status(self):
+        """prueba error con status personalizado"""
+        response = ResponseBuilder.error("Not found", status_code=404)
+        
+        self.assertEqual(response['statusCode'], 404)
+        body = json.loads(response['body'])
+        self.assertEqual(body['error'], 'Not found')
+    
+    def test_error_with_type(self):
+        """prueba error con tipo"""
+        response = ResponseBuilder.error(
+            "Invalid input",
+            status_code=400,
+            error_type="ValidationError"
+        )
+        
+        self.assertEqual(response['statusCode'], 400)
+        body = json.loads(response['body'])
+        self.assertEqual(body['error'], 'Invalid input')
+        self.assertEqual(body['error_type'], 'ValidationError')
+    
+    def test_error_with_details(self):
+        """prueba error con detalles"""
+        details = {
+            'field': 'email',
+            'reason': 'invalid format'
+        }
+        response = ResponseBuilder.error(
+            "Validation failed",
+            status_code=422,
+            details=details
+        )
         
         body = json.loads(response['body'])
-        self.assertEqual(body['error'], 'Internal server error')
-        self.assertEqual(body['details'], 'Something went wrong')
+        self.assertEqual(body['error'], 'Validation failed')
+        self.assertEqual(body['details'], details)
     
-    def test_error_response_s3(self):
-        """prueba respuesta de error para S3"""
-        error = ValueError("Invalid file format")
-        response = ResponseBuilder.error_response(error, 's3')
+    def test_json_response(self):
+        """prueba respuesta JSON"""
+        data = {"key": "value", "number": 42}
+        response = ResponseBuilder.json(data)
+        
+        self.assertEqual(response['statusCode'], 200)
+        self.assertEqual(response['headers']['Content-Type'], 'application/json')
+        
+        body = json.loads(response['body'])
+        self.assertEqual(body, data)
+    
+    def test_json_with_custom_headers(self):
+        """prueba JSON con headers personalizados"""
+        data = {"test": "data"}
+        custom_headers = {'X-Total-Count': '100'}
+        
+        response = ResponseBuilder.json(data, headers=custom_headers)
+        
+        headers = response['headers']
+        self.assertEqual(headers['Content-Type'], 'application/json')
+        self.assertEqual(headers['X-Total-Count'], '100')
+    
+    def test_batch_response(self):
+        """prueba respuesta batch"""
+        results = [
+            {"id": 1, "status": "success"},
+            {"id": 2, "status": "success"},
+            {"id": 3, "status": "error", "error": "Failed"}
+        ]
+        
+        response = ResponseBuilder.batch(results)
         
         self.assertEqual(response['statusCode'], 200)
         body = json.loads(response['body'])
-        
-        self.assertIn('results', body)
-        self.assertEqual(len(body['results']), 1)
-        self.assertEqual(body['results'][0]['status'], 'error')
-        self.assertEqual(body['results'][0]['error'], 'Invalid file format')
-        self.assertEqual(body['results'][0]['source'], 'unknown')
+        self.assertEqual(body['results'], results)
+        self.assertNotIn('summary', body)
     
-    def test_error_response_direct(self):
-        """prueba respuesta de error para invocación directa"""
-        error = TypeError("Type mismatch")
-        response = ResponseBuilder.error_response(error, 'direct')
+    def test_batch_with_summary(self):
+        """prueba batch con resumen"""
+        results = [
+            {"status": "success"},
+            {"status": "success"},
+            {"status": "error"}
+        ]
+        summary = {
+            'total': 3,
+            'success': 2,
+            'errors': 1
+        }
         
-        self.assertIn('error', response)
-        self.assertIn('success', response)
-        self.assertEqual(response['error'], 'Type mismatch')
-        self.assertFalse(response['success'])
+        response = ResponseBuilder.batch(results, summary=summary)
+        
+        body = json.loads(response['body'])
+        self.assertEqual(body['results'], results)
+        self.assertEqual(body['summary'], summary)
     
-    def test_error_response_unknown_type(self):
-        """prueba respuesta de error para tipo desconocido"""
-        error = Exception("Generic error")
-        response = ResponseBuilder.error_response(error, 'unknown')
+    def test_batch_with_custom_status(self):
+        """prueba batch con status personalizado"""
+        results = []
+        response = ResponseBuilder.batch(results, status_code=204)
         
-        # debe usar formato de invocación directa como default
-        self.assertIn('error', response)
-        self.assertIn('success', response)
-        self.assertEqual(response['error'], 'Generic error')
-        self.assertFalse(response['success'])
+        self.assertEqual(response['statusCode'], 204)
 
 
 class TestCompatibilityFunctions(unittest.TestCase):
@@ -208,25 +205,21 @@ class TestCompatibilityFunctions(unittest.TestCase):
         
         self.assertEqual(response['statusCode'], 201)
         self.assertIn('headers', response)
-        self.assertIn('body', response)
+        self.assertEqual(response['headers']['Content-Type'], 'application/json')
+        self.assertEqual(response['headers']['Access-Control-Allow-Origin'], '*')
         
-        # verificar que es equivalente a ResponseBuilder
-        builder_response = ResponseBuilder.api_gateway_response(201, body)
-        self.assertEqual(response, builder_response)
+        parsed_body = json.loads(response['body'])
+        self.assertEqual(parsed_body, body)
     
     def test_create_error_response(self):
         """prueba función de compatibilidad create_error_response"""
         error = RuntimeError("Test error")
+        response = create_error_response(error)
         
-        # probar diferentes tipos de evento
-        api_response = create_error_response(error, 'api_gateway')
-        s3_response = create_error_response(error, 's3')
-        direct_response = create_error_response(error, 'direct')
-        
-        # verificar que son equivalentes a ResponseBuilder
-        self.assertEqual(api_response, ResponseBuilder.error_response(error, 'api_gateway'))
-        self.assertEqual(s3_response, ResponseBuilder.error_response(error, 's3'))
-        self.assertEqual(direct_response, ResponseBuilder.error_response(error, 'direct'))
+        self.assertEqual(response['statusCode'], 500)
+        body = json.loads(response['body'])
+        self.assertEqual(body['error'], 'Test error')
+        self.assertEqual(body['error_type'], 'RuntimeError')
 
 
 if __name__ == '__main__':

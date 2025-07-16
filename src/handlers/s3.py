@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional
 from urllib.parse import unquote
 from src.handlers.base import EventHandler
 from src.core.converters import convert_to_markdown
+from src.core.responses import ResponseBuilder
 from src.utils.utils import get_current_timestamp, is_s3_event
 
 
@@ -37,10 +38,20 @@ class S3Handler(EventHandler):
             result = self._process_record(record)
             results.append(result)
 
-        return {
-            'statusCode': 200,
-            'body': json.dumps({'results': results})
+        # calcular resumen
+        success_count = sum(1 for r in results if r.get('status') == 'success')
+        error_count = sum(1 for r in results if r.get('status') == 'error')
+        
+        summary = {
+            'total': len(results),
+            'success': success_count,
+            'errors': error_count
         }
+        
+        return ResponseBuilder.batch(
+            results=results,
+            summary=summary
+        )
 
     def _process_record(self, record: Dict[str, Any]) -> Dict[str, Any]:
         """

@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
-# importar create_api_response desde el módulo de respuestas para compatibilidad
-from src.core.responses import create_api_response
+from src.core.responses import ResponseBuilder
 
 
 def get_file_extension(filename):
@@ -42,3 +41,13 @@ def is_api_gateway_event(event):
     if not event or not isinstance(event, dict):
         return False
     return 'httpMethod' in event or 'requestContext' in event
+
+
+# función de compatibilidad para mantener imports existentes
+def create_api_response(status_code, body):
+    """crea respuesta para api gateway"""
+    headers = {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+    }
+    return ResponseBuilder.build(status_code, body, headers)

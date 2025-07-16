@@ -101,12 +101,11 @@ class TestLambdaHandlerIntegration(unittest.TestCase):
         """prueba manejo de eventos inválidos"""
         invalid_event = {'invalid': 'event'}
         
-        # ahora el handler retorna un error en lugar de lanzar excepción
-        result = lambda_handler(invalid_event, {})
+        # ahora el handler lanza excepción para eventos desconocidos
+        with self.assertRaises(ValueError) as context:
+            lambda_handler(invalid_event, {})
         
-        # verificar que retorna un error estructurado
-        self.assertIn('error', result)
-        self.assertEqual(result['success'], False)
+        self.assertIn('No handler found for this event type', str(context.exception))
     
     @patch('src.core.converters.markitdown')
     def test_api_gateway_error_handling(self, mock_markitdown):
@@ -121,7 +120,7 @@ class TestLambdaHandlerIntegration(unittest.TestCase):
         self.assertEqual(result['statusCode'], 500)
         body = json.loads(result['body'])
         self.assertEqual(body['error'], 'Internal server error')
-        self.assertIn('Conversion error', body['details'])
+        self.assertIn('Conversion error', body['details']['error'])
     
     def test_unauthorized_api_request(self):
         """prueba rechazo de request no autorizado"""

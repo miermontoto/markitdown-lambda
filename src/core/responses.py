@@ -4,145 +4,160 @@ from typing import Any, Dict, Optional, Union
 
 class ResponseBuilder:
     """
-    constructor de respuestas estandarizadas para diferentes tipos de eventos
+    constructor genérico de respuestas estructuradas
     """
 
     @staticmethod
-    def api_gateway_response(
+    def build(
         status_code: int,
-        body: Union[Dict[str, Any], str],
-        headers: Optional[Dict[str, str]] = None
+        body: Union[Dict[str, Any], str, None] = None,
+        headers: Optional[Dict[str, str]] = None,
+        is_base64_encoded: bool = False
     ) -> Dict[str, Any]:
         """
-        construye una respuesta para api gateway
+        construye una respuesta genérica con estructura estándar
 
         Args:
             status_code: Código de estado HTTP
-            body: Cuerpo de la respuesta (dict o string)
-            headers: Headers adicionales
-
-        Returns:
-            Dict con formato de respuesta de API Gateway
-        """
-        if headers is None:
-            headers = {}
-
-        # headers por defecto
-        default_headers = {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-API-Key',
-            'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
-        }
-
-        # combinar headers
-        final_headers = {**default_headers, **headers}
-
-        # convertir body a string si es necesario
-        if isinstance(body, dict):
-            body_str = json.dumps(body)
-        else:
-            body_str = body
-
-        return {
-            'statusCode': status_code,
-            'headers': final_headers,
-            'body': body_str
-        }
-
-    @staticmethod
-    def s3_batch_response(results: list) -> Dict[str, Any]:
-        """
-        construye una respuesta para procesamiento batch de s3
-
-        Args:
-            results: Lista de resultados de procesamiento
-
-        Returns:
-            Dict con formato de respuesta batch
-        """
-        # contar éxitos y errores
-        success_count = sum(1 for r in results if r.get('status') == 'success')
-        error_count = sum(1 for r in results if r.get('status') == 'error')
-
-        return {
-            'statusCode': 200,
-            'body': json.dumps({
-                'results': results,
-                'summary': {
-                    'total': len(results),
-                    'success': success_count,
-                    'errors': error_count
-                }
-            })
-        }
-
-    @staticmethod
-    def direct_invocation_response(
-        success: bool,
-        data: Optional[Dict[str, Any]] = None,
-        error: Optional[str] = None
-    ) -> Dict[str, Any]:
-        """
-        construye una respuesta para invocación directa
-
-        Args:
-            success: Si la operación fue exitosa
-            data: Datos de respuesta (si fue exitosa)
-            error: Mensaje de error (si falló)
+            body: Cuerpo de la respuesta (dict, string o None)
+            headers: Headers HTTP opcionales
+            is_base64_encoded: Si el body está codificado en base64
 
         Returns:
             Dict con respuesta estructurada
         """
-        if success and data:
-            return data
-        elif not success and error:
-            return {
-                'error': error,
-                'success': False
-            }
-        else:
-            raise ValueError("Invalid response state: either data or error must be provided")
-
-    @staticmethod
-    def error_response(
-        error: Exception,
-        event_type: str = 'unknown'
-    ) -> Dict[str, Any]:
-        """
-        construye una respuesta de error genérica
-
-        Args:
-            error: La excepción que ocurrió
-            event_type: Tipo de evento (api_gateway, s3, direct)
-
-        Returns:
-            Dict con respuesta de error apropiada para el tipo de evento
-        """
-        error_info = {
-            'error': str(error),
-            'error_type': type(error).__name__
+        response = {
+            'statusCode': status_code
         }
 
-        if event_type == 'api_gateway':
-            return ResponseBuilder.api_gateway_response(
-                status_code=500,
-                body={
-                    'error': 'Internal server error',
-                    'details': str(error)
-                }
-            )
-        elif event_type == 's3':
-            return ResponseBuilder.s3_batch_response([{
-                'status': 'error',
-                'error': str(error),
-                'source': 'unknown'
-            }])
-        else:
-            return ResponseBuilder.direct_invocation_response(
-                success=False,
-                error=str(error)
-            )
+        if headers:
+            response['headers'] = headers
+
+        if body is not None:
+            if isinstance(body, dict):
+                response['body'] = json.dumps(body)
+            else:
+                response['body'] = body
+
+        if is_base64_encoded:
+            response['isBase64Encoded'] = True
+
+        return response
+
+    @staticmethod
+    def success(
+        data: Union[Dict[str, Any], str],
+        status_code: int = 200,
+        headers: Optional[Dict[str, str]] = None
+    ) -> Dict[str, Any]:
+        """
+        construye una respuesta exitosa
+
+        Args:
+            data: Datos de respuesta
+            status_code: Código de estado (default: 200)
+            headers: Headers opcionales
+
+        Returns:
+            Dict con respuesta de éxito
+        """
+        return ResponseBuilder.build(
+            status_code=status_code,
+            body=data,
+            headers=headers
+        )
+
+    @staticmethod
+    def error(
+        message: str,
+        status_code: int = 500,
+        error_type: Optional[str] = None,
+        details: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None
+    ) -> Dict[str, Any]:
+        """
+        construye una respuesta de error
+
+        Args:
+            message: Mensaje de error
+            status_code: Código de estado (default: 500)
+            error_type: Tipo de error opcional
+            details: Detalles adicionales del error
+            headers: Headers opcionales
+
+        Returns:
+            Dict con respuesta de error
+        """
+        error_body = {'error': message}
+
+        if error_type:
+            error_body['error_type'] = error_type
+
+        if details:
+            error_body['details'] = details
+
+        return ResponseBuilder.build(
+            status_code=status_code,
+            body=error_body,
+            headers=headers
+        )
+
+    @staticmethod
+    def json(
+        data: Any,
+        status_code: int = 200,
+        headers: Optional[Dict[str, str]] = None
+    ) -> Dict[str, Any]:
+        """
+        construye una respuesta JSON con headers apropiados
+
+        Args:
+            data: Datos a serializar como JSON
+            status_code: Código de estado (default: 200)
+            headers: Headers adicionales
+
+        Returns:
+            Dict con respuesta JSON
+        """
+        json_headers = {'Content-Type': 'application/json'}
+        if headers:
+            json_headers.update(headers)
+
+        return ResponseBuilder.build(
+            status_code=status_code,
+            body=data if isinstance(data, str) else json.dumps(data),
+            headers=json_headers
+        )
+
+    @staticmethod
+    def batch(
+        results: list,
+        status_code: int = 200,
+        summary: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None
+    ) -> Dict[str, Any]:
+        """
+        construye una respuesta para operaciones batch
+
+        Args:
+            results: Lista de resultados
+            status_code: Código de estado (default: 200)
+            summary: Resumen opcional de los resultados
+            headers: Headers opcionales
+
+        Returns:
+            Dict con respuesta batch
+        """
+        body = {'results': results}
+
+        if summary:
+            body['summary'] = summary
+
+        return ResponseBuilder.build(
+            status_code=status_code,
+            body=body,
+            headers=headers
+        )
 
 
 # funciones de conveniencia para mantener compatibilidad
@@ -150,11 +165,19 @@ def create_api_response(status_code: int, body: Union[Dict[str, Any], str]) -> D
     """
     función de compatibilidad para crear respuestas api gateway
     """
-    return ResponseBuilder.api_gateway_response(status_code, body)
+    headers = {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+    }
+    return ResponseBuilder.build(status_code, body, headers)
 
 
 def create_error_response(error: Exception, event_type: str = 'unknown') -> Dict[str, Any]:
     """
     función de compatibilidad para crear respuestas de error
+    nota: esta función es obsoleta, usar ResponseBuilder.error directamente
     """
-    return ResponseBuilder.error_response(error, event_type)
+    return ResponseBuilder.error(
+        message=str(error),
+        error_type=type(error).__name__
+    )
