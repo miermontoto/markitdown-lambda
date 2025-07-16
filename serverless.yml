@@ -25,6 +25,7 @@ provider:
     PYTHONPATH: '/opt/python'
     INPUT_BUCKET: ${self:custom.bucketName}
     OUTPUT_BUCKET: ${self:custom.bucketName}
+    API_KEY: ${env:API_KEY}
   iam:
     role:
       statements:

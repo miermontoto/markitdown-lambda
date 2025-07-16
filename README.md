@@ -23,11 +23,13 @@ npm run deploy
 # convertir contenido directo
 curl -X POST https://<subdomain>.<domain>/convert \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-api-key" \
   -d '{"content": "# Hola mundo"}'
 
-# convertir archivo en base64
+# convertir archivo en base64 (usando X-API-Key)
 curl -X POST https://<subdomain>.<domain>/convert \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: your-api-key" \
   -d '{
     "content": "base64-del-archivo",
     "filename": "documento.pdf",
@@ -63,6 +65,16 @@ response = lambda_client.invoke(
 - `S3_BUCKET_NAME`: Bucket único para todo (input/, output/, errors/)
 - `AWS_MEMORY_SIZE`: RAM de la Lambda (default: 1024 MB)
 - `AWS_TIMEOUT_IN_SECS`: Timeout (default: 300 segundos)
+- `API_KEY`: Token de autorización (opcional - si no se configura, la API estará abierta)
+
+## Autorización
+
+La API soporta dos formas de enviar el token:
+
+- **Bearer Token**: `Authorization: Bearer <API_KEY>`
+- **X-API-Key**: `X-API-Key: <API_KEY>`
+
+Nota: La autorización solo aplica para requests HTTP. Los eventos de S3 y las invocaciones directas usan permisos IAM.
 
 ## Desarrollo local
 
