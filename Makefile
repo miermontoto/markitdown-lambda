@@ -1,4 +1,4 @@
-.PHONY: help install install-dev clean test
+.PHONY: help install install-dev clean test coverage
 
 help:
 	@echo "Comandos disponibles:"
@@ -6,6 +6,7 @@ help:
 	@echo "  make install-dev - Instalar dependencias de desarrollo"
 	@echo "  make clean       - Limpiar archivos temporales"
 	@echo "  make test        - Ejecutar pruebas"
+	@echo "  make coverage    - Ejecutar pruebas con reporte de cobertura"
 
 install:
 	pnpm install
@@ -21,3 +22,6 @@ clean:
 
 test:
 	uv run pytest tests/ -v
+
+coverage:
+	uv run pytest tests/ --cov=src --cov-report=term-missing --cov-report=html

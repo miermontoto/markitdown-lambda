@@ -49,8 +49,10 @@ class TestUtils(unittest.TestCase):
             self.fail(f"Invalid timestamp format: {timestamp}")
         
         # verificar que es reciente (menos de 1 segundo)
-        now = datetime.utcnow()
-        parsed_time = datetime.fromisoformat(timestamp[:-1])
+        from datetime import timezone
+        now = datetime.now(timezone.utc)
+        # parsear con timezone
+        parsed_time = datetime.fromisoformat(timestamp[:-1] + '+00:00')
         diff = (now - parsed_time).total_seconds()
         self.assertLess(diff, 1.0)
     

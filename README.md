@@ -12,30 +12,19 @@ Lambda wrapper que convierte cualquier archivo a Markdown usando [markitdown de 
 
 ## Setup
 
-### Instalación de dependencias
+### Dependencias
 
 ```bash
 # opción 1: usando make
 make install      # instala dependencias de producción
 make install-dev  # instala también dependencias de desarrollo
-
-# opción 2: manualmente
-pnpm install                     # dependencias node
-pip install -r requirements.txt  # dependencias python
-
-# para desarrollo (incluye pytest, black, flake8)
-pip install -r requirements-dev.txt
-
-# nota: si usas uv (gestor de paquetes Python más rápido)
-uv pip install -r requirements.txt
-uv pip install -r requirements-dev.txt
 ```
 
-### Configuración
+### Configurar entorno
 
 ```bash
 # configurar entorno
-cp config/.env.example .env
+cp .env.example .env
 
 # editar .env con tus valores
 ```
@@ -44,7 +33,7 @@ cp config/.env.example .env
 
 ```bash
 # desplegar en AWS
-pnpm run deploy
+pnpm deploy
 ```
 
 ## Uso
@@ -112,54 +101,30 @@ La API soporta dos formas de enviar el token:
 
 ```bash
 # probar con evento de ejemplo
-pnpm run try
+pnpm try
 
 # o con tu propio evento
-pnpm run invoke mi-evento.json
+pnpm invoke mi-evento.json
 
 # ver logs
-pnpm run logs
+pnpm logs
 
 # ver todos los comandos disponibles
 pnpm run
+make help
 ```
 
 ## Tests
 
 ```bash
-# ejecutar todas las pruebas
-pnpm test
+# ejecutar todos los tests
+make test
+
+# ejecutar tests con reporte de cobertura
+make coverage
 ```
 
-### Estructura de pruebas
+El reporte de cobertura muestra:
 
-- **tests/unit/**: Pruebas unitarias para cada módulo
-  - `test_auth.py`: Autorización y API keys
-  - `test_converters.py`: Conversión a markdown
-  - `test_api_handler.py`: Manejo de API Gateway
-  - `test_s3_handler.py`: Procesamiento de S3
-  - `test_utils.py`: Funciones utilitarias
-
-- **tests/integration/**: Pruebas de integración
-  - `test_lambda_handler.py`: Flujos completos end-to-end
-
-- **tests/fixtures.py**: Datos de prueba compartidos
-
-## Dependencias
-
-### Producción
-- **markitdown**: Biblioteca de Microsoft para conversión a Markdown
-- **boto3**: AWS SDK para Python (interacción con S3)
-
-### Desarrollo
-- **pytest**: Framework de testing
-- **pytest-cov**: Cobertura de código
-- **black**: Formateador de código Python
-- **flake8**: Linter para Python
-- **mypy**: Type checking estático
-
-### Node/Serverless
-- **serverless**: Framework de deployment
-- **serverless-python-requirements**: Manejo de dependencias Python
-- **serverless-dotenv-plugin**: Variables de entorno
-- **serverless-domain-manager**: Gestión de dominios personalizados
+- En terminal: qué líneas no están cubiertas
+- En HTML: abre `htmlcov/index.html` para ver detalles

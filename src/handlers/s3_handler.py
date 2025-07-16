@@ -1,7 +1,7 @@
 import json
 import os
 import boto3
-from urllib.parse import unquote_plus
+from urllib.parse import unquote
 from src.core.converters import convert_to_markdown
 from src.utils.utils import get_current_timestamp
 
@@ -16,7 +16,7 @@ def handle_s3_event(event):
     for record in event['Records']:
         # obtener información del archivo
         bucket = record['s3']['bucket']['name']
-        key = unquote_plus(record['s3']['object']['key'])
+        key = unquote(record['s3']['object']['key'])
 
         print(f"Processing file: s3://{bucket}/{key}")
 

@@ -9,9 +9,12 @@ def validate_api_key(event):
         return True
 
     headers = event.get('headers', {})
-    # soportar ambos formatos de header
-    auth_header = headers.get('authorization') or headers.get('Authorization')
-    x_api_key = headers.get('x-api-key') or headers.get('X-API-Key')
+    # convertir headers a lowercase para búsqueda case-insensitive
+    headers_lower = {k.lower(): v for k, v in headers.items()}
+    
+    # buscar headers de autorización
+    auth_header = headers_lower.get('authorization')
+    x_api_key = headers_lower.get('x-api-key')
 
     # verificar bearer token
     if auth_header and auth_header.startswith('Bearer '):

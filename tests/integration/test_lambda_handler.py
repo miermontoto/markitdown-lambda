@@ -31,6 +31,7 @@ class TestLambdaHandlerIntegration(unittest.TestCase):
         # configurar mock
         mock_result = MagicMock()
         mock_result.text_content = "# Converted Content\n\nThis is the converted markdown."
+        mock_result.title = None  # explícitamente configurar title
         mock_markitdown.convert_stream.return_value = mock_result
         
         # ejecutar handler

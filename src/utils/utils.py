@@ -12,7 +12,8 @@ def get_file_extension(filename):
 
 def get_current_timestamp():
     """obtiene timestamp actual en formato iso"""
-    return datetime.now(timezone.utc).isoformat() + 'Z'
+    # usar replace para obtener formato ISO con Z en lugar de +00:00
+    return datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
 
 
 def create_api_response(status_code, body):
@@ -29,10 +30,15 @@ def create_api_response(status_code, body):
 
 def is_s3_event(event):
     """verifica si es un evento de s3"""
+    if not event or not isinstance(event, dict):
+        return False
     return 'Records' in event and event['Records'] and \
+           len(event['Records']) > 0 and \
            event['Records'][0].get('eventSource') == 'aws:s3'
 
 
 def is_api_gateway_event(event):
     """verifica si es un evento de api gateway"""
+    if not event or not isinstance(event, dict):
+        return False
     return 'httpMethod' in event or 'requestContext' in event
