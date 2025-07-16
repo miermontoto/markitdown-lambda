@@ -1,34 +1,32 @@
-# Markdown Converter Lambda
+# markitdown-lambda
 
-Lambda que convierte cualquier archivo a Markdown usando markitdown de Microsoft.
+Lambda wrapper que convierte cualquier archivo a Markdown usando [markitdown de Microsoft](https://github.com/microsoft/markitdown).
 
-## ¿Qué hace?
-
-Convierte PDFs, Word, Excel, PowerPoint, HTML, CSV, JSON y más a Markdown limpio.
-
-## Setup rápido
+## Setup
 
 ```bash
-# configurar entorno
+# instalar dependencias
 npm install
+
+# configurar entorno
 cp .env.example .env
 
-# desplegar
+# desplegar en AWS
 npm run deploy
 ```
 
-## Cómo usarlo
+## Uso
 
 ### API REST
 
 ```bash
 # convertir contenido directo
-curl -X POST https://md.okticket.io/convert \
+curl -X POST https://<subdomain>.<domain>/convert \
   -H "Content-Type: application/json" \
   -d '{"content": "# Hola mundo"}'
 
 # convertir archivo en base64
-curl -X POST https://md.okticket.io/convert \
+curl -X POST https://<subdomain>.<domain>/convert \
   -H "Content-Type: application/json" \
   -d '{
     "content": "base64-del-archivo",
@@ -37,11 +35,11 @@ curl -X POST https://md.okticket.io/convert \
   }'
 ```
 
-### S3 automático
+### Integración con S3
 
-Sube cualquier archivo a `s3://tu-bucket/input/` y aparecerá convertido en `s3://tu-bucket/output/`.
-
-Los archivos se borran automáticamente después de 15 días. Si hay errores, se guardan en `s3://tu-bucket/errors/`.
+- Cualquier archivo subido a `s3://<bucket>/input/` aparecerá convertido en `s3://<bucket>/output/`.
+- Los archivos se borran automáticamente después de 15 días.
+- Si hay errores, se guardan en `s3://<bucket>/errors/`.
 
 ### Invocación directa
 
@@ -63,7 +61,7 @@ response = lambda_client.invoke(
 ## Variables de entorno
 
 - `S3_BUCKET_NAME`: Bucket único para todo (input/, output/, errors/)
-- `AWS_MEMORY_SIZE`: RAM del Lambda (default: 1024 MB)
+- `AWS_MEMORY_SIZE`: RAM de la Lambda (default: 1024 MB)
 - `AWS_TIMEOUT_IN_SECS`: Timeout (default: 300 segundos)
 
 ## Desarrollo local
@@ -81,9 +79,3 @@ npm run logs
 # ver todos los comandos disponibles
 npm run
 ```
-
-## Notas
-
-- Serverless Framework v4
-- Python 3.11 en ARM64 (más barato y rápido)
-- Soporta archivos hasta el límite de Lambda (10GB con EFS, 512MB sin él)
