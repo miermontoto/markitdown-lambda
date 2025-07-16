@@ -1,5 +1,49 @@
-__pycache__
-.serverless
+# python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# serverless
+.serverless/
+.requirements/
+
+# node
+node_modules/
+
+# environment
 .env
-node_modules
+.env.local
+.env.*.local
+
+# ide
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macos
 .DS_Store
+
+# logs
+*.log
+logs/
+
+# test coverage
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.pytest_cache/
+
+# distribution
+dist/
+build/
+*.egg-info/

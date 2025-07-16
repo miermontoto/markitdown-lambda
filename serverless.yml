@@ -44,7 +44,7 @@ package:
   individually: false
   patterns:
     - "!./**"
-    - handler.py
+    - "src/**/*.py"
     - requirements.txt
 
 plugins:
@@ -103,7 +103,7 @@ resources:
 
 functions:
   markdownConverter:
-    handler: handler.lambda_handler
+    handler: src/handler.lambda_handler
     events:
       # api gateway para requests rest
       - httpApi:

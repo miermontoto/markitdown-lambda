@@ -9,7 +9,7 @@ Lambda wrapper que convierte cualquier archivo a Markdown usando [markitdown de 
 npm install
 
 # configurar entorno
-cp .env.example .env
+cp config/.env.example .env
 
 # desplegar en AWS
 npm run deploy
