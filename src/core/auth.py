@@ -11,7 +11,7 @@ def validate_api_key(event):
     headers = event.get('headers', {})
     # convertir headers a lowercase para búsqueda case-insensitive
     headers_lower = {k.lower(): v for k, v in headers.items()}
-    
+
     # buscar headers de autorización
     auth_header = headers_lower.get('authorization')
     x_api_key = headers_lower.get('x-api-key')

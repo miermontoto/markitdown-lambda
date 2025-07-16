@@ -1,5 +1,6 @@
-import json
 from datetime import datetime, timezone
+# importar create_api_response desde el módulo de respuestas para compatibilidad
+from src.core.responses import create_api_response
 
 
 def get_file_extension(filename):
@@ -16,25 +17,24 @@ def get_current_timestamp():
     return datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
 
 
-def create_api_response(status_code, body):
-    """crea respuesta para api gateway"""
-    return {
-        'statusCode': status_code,
-        'headers': {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-        },
-        'body': json.dumps(body)
-    }
-
-
 def is_s3_event(event):
     """verifica si es un evento de s3"""
     if not event or not isinstance(event, dict):
         return False
-    return 'Records' in event and event['Records'] and \
-           len(event['Records']) > 0 and \
-           event['Records'][0].get('eventSource') == 'aws:s3'
+    
+    if 'Records' not in event:
+        return False
+    
+    records = event['Records']
+    if not isinstance(records, list) or len(records) == 0:
+        return False
+    
+    # verificar que el primer record es de S3
+    first_record = records[0]
+    if not isinstance(first_record, dict):
+        return False
+    
+    return first_record.get('eventSource') == 'aws:s3'
 
 
 def is_api_gateway_event(event):

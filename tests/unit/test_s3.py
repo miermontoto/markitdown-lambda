@@ -9,11 +9,18 @@ from tests.fixtures import S3_EVENT
 class TestS3Handler(unittest.TestCase):
     """pruebas para el manejador de eventos S3"""
     
-    @patch('src.handlers.s3.s3_client')
+    def setUp(self):
+        """limpiar el handler singleton antes de cada test"""
+        import src.handlers.s3
+        src.handlers.s3._default_handler = None
+    
+    @patch('boto3.client')
     @patch('src.handlers.s3.convert_to_markdown')
-    def test_handle_s3_event_success(self, mock_convert, mock_s3):
+    def test_handle_s3_event_success(self, mock_convert, mock_boto3_client):
         """prueba procesamiento exitoso de evento S3"""
         # configurar mocks
+        mock_s3 = MagicMock()
+        mock_boto3_client.return_value = mock_s3
         mock_s3.get_object.return_value = {
             'Body': MagicMock(read=lambda: b'Test file content')
         }
@@ -48,11 +55,13 @@ class TestS3Handler(unittest.TestCase):
         self.assertEqual(put_args[1]['Key'], 'output/test-document.md')
         self.assertEqual(put_args[1]['ContentType'], 'text/markdown')
     
-    @patch('src.handlers.s3.s3_client')
+    @patch('boto3.client')
     @patch('src.handlers.s3.convert_to_markdown')
-    def test_handle_s3_event_conversion_error(self, mock_convert, mock_s3):
+    def test_handle_s3_event_conversion_error(self, mock_convert, mock_boto3_client):
         """prueba manejo de error en conversión"""
         # configurar mocks
+        mock_s3 = MagicMock()
+        mock_boto3_client.return_value = mock_s3
         mock_s3.get_object.return_value = {
             'Body': MagicMock(read=lambda: b'Test file content')
         }
@@ -74,10 +83,12 @@ class TestS3Handler(unittest.TestCase):
         self.assertEqual(error_call[1]['Key'], 'errors/test-document_error.json')
         self.assertEqual(error_call[1]['ContentType'], 'application/json')
     
-    @patch('src.handlers.s3.s3_client')
-    def test_handle_s3_event_get_object_error(self, mock_s3):
+    @patch('boto3.client')
+    def test_handle_s3_event_get_object_error(self, mock_boto3_client):
         """prueba error al obtener objeto de S3"""
         # configurar mock para lanzar error
+        mock_s3 = MagicMock()
+        mock_boto3_client.return_value = mock_s3
         mock_s3.get_object.side_effect = ClientError(
             {'Error': {'Code': 'NoSuchKey', 'Message': 'Object not found'}},
             'GetObject'
@@ -91,9 +102,9 @@ class TestS3Handler(unittest.TestCase):
         self.assertEqual(body['results'][0]['status'], 'error')
         self.assertIn('NoSuchKey', body['results'][0]['error'])
     
-    @patch('src.handlers.s3.s3_client')
+    @patch('boto3.client')
     @patch('src.handlers.s3.convert_to_markdown')
-    def test_handle_s3_event_multiple_records(self, mock_convert, mock_s3):
+    def test_handle_s3_event_multiple_records(self, mock_convert, mock_boto3_client):
         """prueba procesamiento de múltiples registros"""
         # crear evento con múltiples registros
         multi_event = {
@@ -109,6 +120,8 @@ class TestS3Handler(unittest.TestCase):
         }
         
         # configurar mocks
+        mock_s3 = MagicMock()
+        mock_boto3_client.return_value = mock_s3
         mock_s3.get_object.return_value = {
             'Body': MagicMock(read=lambda: b'Content')
         }
@@ -125,9 +138,9 @@ class TestS3Handler(unittest.TestCase):
         self.assertEqual(mock_s3.get_object.call_count, 3)
         self.assertEqual(mock_s3.put_object.call_count, 3)
     
-    @patch('src.handlers.s3.s3_client')
+    @patch('boto3.client')
     @patch('src.handlers.s3.convert_to_markdown')
-    def test_handle_s3_event_special_characters(self, mock_convert, mock_s3):
+    def test_handle_s3_event_special_characters(self, mock_convert, mock_boto3_client):
         """prueba manejo de caracteres especiales en nombres"""
         # evento con caracteres especiales codificados
         special_event = {
@@ -140,6 +153,8 @@ class TestS3Handler(unittest.TestCase):
             }]
         }
         
+        mock_s3 = MagicMock()
+        mock_boto3_client.return_value = mock_s3
         mock_s3.get_object.return_value = {
             'Body': MagicMock(read=lambda: b'Content')
         }

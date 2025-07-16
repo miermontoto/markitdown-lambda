@@ -17,6 +17,12 @@ class TestLambdaHandlerIntegration(unittest.TestCase):
         """configurar antes de cada prueba"""
         self.original_api_key = os.environ.get('API_KEY')
         os.environ['API_KEY'] = 'test-api-key'
+        # limpiar handlers singleton
+        import src.handlers.s3
+        import src.handlers.registry
+        src.handlers.s3._default_handler = None
+        src.handlers.registry.clear_registry()
+        src.handlers.registry.auto_register_handlers()
     
     def tearDown(self):
         """limpiar después de cada prueba"""
@@ -47,11 +53,13 @@ class TestLambdaHandlerIntegration(unittest.TestCase):
         self.assertIn('metadata', body)
         self.assertIn('Converted Content', body['markdown'])
     
-    @patch('src.handlers.s3.s3_client')
+    @patch('boto3.client')
     @patch('src.core.converters.markitdown')
-    def test_s3_event_flow(self, mock_markitdown, mock_s3):
+    def test_s3_event_flow(self, mock_markitdown, mock_boto3_client):
         """prueba flujo completo de evento S3"""
         # configurar mocks
+        mock_s3 = MagicMock()
+        mock_boto3_client.return_value = mock_s3
         mock_s3.get_object.return_value = {
             'Body': MagicMock(read=lambda: b'Test S3 content')
         }
@@ -93,8 +101,12 @@ class TestLambdaHandlerIntegration(unittest.TestCase):
         """prueba manejo de eventos inválidos"""
         invalid_event = {'invalid': 'event'}
         
-        with self.assertRaises(ValueError):
-            lambda_handler(invalid_event, {})
+        # ahora el handler retorna un error en lugar de lanzar excepción
+        result = lambda_handler(invalid_event, {})
+        
+        # verificar que retorna un error estructurado
+        self.assertIn('error', result)
+        self.assertEqual(result['success'], False)
     
     @patch('src.core.converters.markitdown')
     def test_api_gateway_error_handling(self, mock_markitdown):
