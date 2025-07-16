@@ -201,8 +201,9 @@ class TestGlobalRegistryFunctions(unittest.TestCase):
         auto_register_handlers()
         
         handlers = list_registered_handlers()
-        # debe haber registrado ambos handlers
-        self.assertEqual(len(handlers), 2)
+        # debe haber registrado todos los handlers
+        self.assertEqual(len(handlers), 3)
+        self.assertIn('HealthHandler', handlers)
         self.assertIn('S3Handler', handlers)
         self.assertIn('ApiHandler', handlers)
     

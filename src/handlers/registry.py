@@ -133,10 +133,12 @@ def auto_register_handlers():
     try:
         from src.handlers.api import ApiHandler
         from src.handlers.s3 import S3Handler
+        from src.handlers.health import HealthHandler
 
         # registrar con prioridades
-        register_handler(S3Handler, priority=10)  # s3 tiene mayor prioridad
-        register_handler(ApiHandler, priority=5)   # api gateway es secundario
+        register_handler(HealthHandler, priority=15)  # health check tiene mayor prioridad
+        register_handler(S3Handler, priority=10)     # s3 es segundo
+        register_handler(ApiHandler, priority=5)      # api gateway es tercero
 
     except ImportError as e:
         print(f"Warning: Could not auto-register handlers: {str(e)}")

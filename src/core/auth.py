@@ -4,7 +4,7 @@ import os
 def validate_api_key(event):
     """valida el api key del request"""
     api_key = os.environ.get('API_KEY')
-    if not api_key:
+    if not api_key or api_key == '':
         # si no hay api key configurada, permitir acceso
         return True
 
