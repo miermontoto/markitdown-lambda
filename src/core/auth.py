@@ -1,9 +1,9 @@
-import os
+from src.core.config import get_config
 
 
 def validate_api_key(event):
     """valida el api key del request"""
-    api_key = os.environ.get('API_KEY')
+    api_key = get_config('API_KEY')
     if not api_key or api_key == '':
         # si no hay api key configurada, permitir acceso
         return True

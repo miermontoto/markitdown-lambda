@@ -1,10 +1,10 @@
 """
 health check handler para verificar el estado del servicio
 """
-import os
 from typing import Any, Dict
 from src.handlers.base import EventHandler
 from src.core.responses import ResponseBuilder
+from src.core.config import get_config
 
 
 class HealthHandler(EventHandler):
@@ -29,11 +29,11 @@ class HealthHandler(EventHandler):
         # información del servicio
         health_info: Dict[str, Any] = {
             'status': 'healthy',
-            'service': os.environ.get('APP_NAME', 'markdown-converter'),
-            'version': os.environ.get('APP_VERSION', '1.0.0'),
-            'region': os.environ.get('AWS_REGION', 'unknown'),
-            'runtime': os.environ.get('AWS_EXECUTION_ENV', 'unknown'),
-            'bucket': os.environ.get('INPUT_BUCKET', 'not-configured')
+            'service': get_config('APP_NAME', 'markdown-converter'),
+            'version': get_config('APP_VERSION', '1.0.0'),
+            'region': get_config('AWS_REGION', 'unknown'),
+            'runtime': get_config('AWS_EXECUTION_ENV', 'unknown'),
+            'bucket': get_config('INPUT_BUCKET', 'not-configured')
         }
 
         # agregar información del contexto si está disponible

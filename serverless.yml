@@ -4,16 +4,16 @@ useDotenv: true
 
 provider:
   name: aws
-  runtime: ${env:AWS_RUNTIME, 'python3.11'}
-  architecture: ${env:AWS_ARCH, 'arm64'}
+  runtime: ${env:AWS_RUNTIME, 'python3.12'}
+  architecture: ${env:AWS_ARCH, 'x86_64'}
   stage: prod
   region: ${env:AWS_MAIN_REGION, 'eu-west-1'}
   memorySize: ${env:AWS_MEMORY_SIZE, 1024}
-  timeout: ${env:AWS_TIMEOUT_IN_SECS, 300}
+  timeout: ${env:AWS_TIMEOUT_IN_SECS, 29}
   httpApi:
     cors:
       allowedOrigins:
-        - '*'
+        - "*"
       allowedHeaders:
         - Content-Type
       allowedMethods:
@@ -22,10 +22,11 @@ provider:
   environment:
     APP_NAME: ${env:APP_NAME, 'markdown-converter'}
     APP_VERSION: ${env:APP_VERSION, '1.0.0'}
-    PYTHONPATH: '/opt/python'
+    PYTHONPATH: "/opt/python"
     INPUT_BUCKET: ${self:custom.bucketName}
     OUTPUT_BUCKET: ${self:custom.bucketName}
     API_KEY: ${env:API_KEY, ''}
+    STAGE: ${self:provider.stage}
   iam:
     role:
       statements:
@@ -37,6 +38,11 @@ provider:
           Resource:
             - "arn:aws:s3:::${self:custom.bucketName}/*"
             - "arn:aws:s3:::${self:custom.bucketName}"
+        - Effect: Allow
+          Action:
+            - secretsmanager:GetSecretValue
+          Resource:
+            - "arn:aws:secretsmanager:${self:provider.region}:*:secret:markdown-converter/${self:provider.stage}/*"
   layers:
     - Ref: PythonRequirementsLambdaLayer
 
@@ -75,7 +81,7 @@ custom:
 
 resources:
   Resources:
-    InputBucket:
+    InputOutputBucket:
       Type: AWS::S3::Bucket
       Properties:
         BucketName: ${self:custom.bucketName}
@@ -89,28 +95,33 @@ resources:
             - Id: DeleteOldInputFiles
               Status: Enabled
               Prefix: input/
-              ExpirationInDays: 15
+              ExpirationInDays: 1
             - Id: DeleteOldOutputFiles
               Status: Enabled
               Prefix: output/
               ExpirationInDays: 15
-            - Id: DeleteOldErrorFiles
-              Status: Enabled
-              Prefix: errors/
-              ExpirationInDays: 15
+
+    SecretsManagerSecret:
+      Type: AWS::SecretsManager::Secret
+      Properties:
+        Name: markdown-converter/${self:provider.stage}/config
+        Description: API key for markdown converter service
+        GenerateSecretString:
+          SecretStringTemplate: "{}"
+          GenerateStringKey: "API_KEY"
+          PasswordLength: 32
+          ExcludeCharacters: ' "\\/@'
 
 functions:
   markdownConverter:
     handler: src/handler.lambda_handler
     events:
-      # api gateway para requests rest
       - httpApi:
           path: /convert
           method: POST
       - httpApi:
           path: /health
           method: GET
-      # s3 events para conversión automática - todos los archivos soportados
       - s3:
           bucket: ${self:custom.bucketName}
           event: s3:ObjectCreated:*

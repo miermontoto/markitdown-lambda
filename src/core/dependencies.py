@@ -1,7 +1,7 @@
-import os
 from typing import Dict, Any
 import boto3
 from functools import lru_cache
+from src.core.config import get_config
 
 
 class DependencyContainer:
@@ -91,14 +91,14 @@ def create_api_key():
     """
     obtiene la api key desde las variables de entorno
     """
-    return os.environ.get('API_KEY')
+    return get_config('API_KEY')
 
 
 def create_bucket_name():
     """
     obtiene el nombre del bucket desde las variables de entorno
     """
-    return os.environ.get('S3_BUCKET_NAME')
+    return get_config('S3_BUCKET_NAME', get_config('INPUT_BUCKET'))
 
 
 # registrar dependencias comunes

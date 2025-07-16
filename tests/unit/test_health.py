@@ -58,25 +58,32 @@ class TestHealthHandler:
         }
         assert handler.can_handle(event) is False
     
-    def test_handle_returns_health_info(self, handler, health_event):
+    @patch('src.handlers.health.get_config')
+    def test_handle_returns_health_info(self, mock_get_config, handler, health_event):
         """verifica que retorna información de salud"""
-        with patch.dict('os.environ', {
-            'APP_NAME': 'test-converter',
-            'APP_VERSION': '2.0.0',
-            'AWS_REGION': 'us-east-1',
-            'INPUT_BUCKET': 'test-bucket'
-        }):
-            response = handler.handle(health_event)
-            
-            assert response['statusCode'] == 200
-            assert 'Access-Control-Allow-Origin' in response['headers']
-            
-            body = json.loads(response['body'])
-            assert body['status'] == 'healthy'
-            assert body['service'] == 'test-converter'
-            assert body['version'] == '2.0.0'
-            assert body['region'] == 'us-east-1'
-            assert body['bucket'] == 'test-bucket'
+        # configurar mock para retornar valores específicos
+        def config_side_effect(key, default=None):
+            config_map = {
+                'APP_NAME': 'test-converter',
+                'APP_VERSION': '2.0.0',
+                'AWS_REGION': 'us-east-1',
+                'INPUT_BUCKET': 'test-bucket'
+            }
+            return config_map.get(key, default)
+        
+        mock_get_config.side_effect = config_side_effect
+        
+        response = handler.handle(health_event)
+        
+        assert response['statusCode'] == 200
+        assert 'Access-Control-Allow-Origin' in response['headers']
+        
+        body = json.loads(response['body'])
+        assert body['status'] == 'healthy'
+        assert body['service'] == 'test-converter'
+        assert body['version'] == '2.0.0'
+        assert body['region'] == 'us-east-1'
+        assert body['bucket'] == 'test-bucket'
     
     def test_handle_with_context(self, handler, health_event):
         """verifica que incluye información del contexto"""

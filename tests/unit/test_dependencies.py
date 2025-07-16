@@ -1,6 +1,5 @@
 import unittest
 from unittest.mock import patch, MagicMock
-import os
 from src.core.dependencies import (
     DependencyContainer,
     register_dependency,
@@ -123,29 +122,31 @@ class TestFactoryFunctions(unittest.TestCase):
         mock_boto3_client.assert_called_once_with('s3')
         self.assertEqual(client, mock_client)
     
-    def test_create_api_key(self):
-        """prueba obtener API key desde ambiente"""
+    @patch('src.core.dependencies.get_config')
+    def test_create_api_key(self, mock_get_config):
+        """prueba obtener API key desde config"""
         # sin API_KEY
-        with patch.dict(os.environ, {}, clear=True):
-            key = create_api_key()
-            self.assertIsNone(key)
+        mock_get_config.return_value = None
+        key = create_api_key()
+        self.assertIsNone(key)
         
         # con API_KEY
-        with patch.dict(os.environ, {'API_KEY': 'test-key-123'}):
-            key = create_api_key()
-            self.assertEqual(key, 'test-key-123')
+        mock_get_config.return_value = 'test-key-123'
+        key = create_api_key()
+        self.assertEqual(key, 'test-key-123')
     
-    def test_create_bucket_name(self):
-        """prueba obtener nombre de bucket desde ambiente"""
-        # sin S3_BUCKET_NAME
-        with patch.dict(os.environ, {}, clear=True):
-            bucket = create_bucket_name()
-            self.assertIsNone(bucket)
+    @patch('src.core.dependencies.get_config')
+    def test_create_bucket_name(self, mock_get_config):
+        """prueba obtener nombre de bucket desde config"""
+        # sin bucket name
+        mock_get_config.return_value = None
+        bucket = create_bucket_name()
+        self.assertIsNone(bucket)
         
-        # con S3_BUCKET_NAME
-        with patch.dict(os.environ, {'S3_BUCKET_NAME': 'my-test-bucket'}):
-            bucket = create_bucket_name()
-            self.assertEqual(bucket, 'my-test-bucket')
+        # con bucket name
+        mock_get_config.return_value = 'my-test-bucket'
+        bucket = create_bucket_name()
+        self.assertEqual(bucket, 'my-test-bucket')
 
 
 class TestGlobalDependencyFunctions(unittest.TestCase):
@@ -188,27 +189,29 @@ class TestGlobalDependencyFunctions(unittest.TestCase):
         self.assertEqual(s3_client, s3_client2)
         mock_boto3_client.assert_called_once()
     
-    def test_api_key_dependency(self):
+    @patch('src.core.dependencies.get_config')
+    def test_api_key_dependency(self, mock_get_config):
         """prueba dependencia de API key"""
-        with patch.dict(os.environ, {'API_KEY': 'dependency-test-key'}):
-            # limpiar y re-registrar para que tome el nuevo valor
-            from src.core.dependencies import _container
-            _container.clear()
-            register_default_dependencies()
-            
-            api_key = get_dependency('api_key')
-            self.assertEqual(api_key, 'dependency-test-key')
+        mock_get_config.return_value = 'dependency-test-key'
+        # limpiar y re-registrar para que tome el nuevo valor
+        from src.core.dependencies import _container
+        _container.clear()
+        register_default_dependencies()
+        
+        api_key = get_dependency('api_key')
+        self.assertEqual(api_key, 'dependency-test-key')
     
-    def test_bucket_name_dependency(self):
+    @patch('src.core.dependencies.get_config')
+    def test_bucket_name_dependency(self, mock_get_config):
         """prueba dependencia de nombre de bucket"""
-        with patch.dict(os.environ, {'S3_BUCKET_NAME': 'dependency-test-bucket'}):
-            # limpiar y re-registrar para que tome el nuevo valor
-            from src.core.dependencies import _container
-            _container.clear()
-            register_default_dependencies()
-            
-            bucket_name = get_dependency('bucket_name')
-            self.assertEqual(bucket_name, 'dependency-test-bucket')
+        mock_get_config.return_value = 'dependency-test-bucket'
+        # limpiar y re-registrar para que tome el nuevo valor
+        from src.core.dependencies import _container
+        _container.clear()
+        register_default_dependencies()
+        
+        bucket_name = get_dependency('bucket_name')
+        self.assertEqual(bucket_name, 'dependency-test-bucket')
 
 
 if __name__ == '__main__':
