@@ -1,7 +1,7 @@
 import json
 from src.utils.utils import is_s3_event, is_api_gateway_event, create_api_response
-from src.handlers.s3_handler import handle_s3_event
-from src.handlers.api_handler import handle_api_gateway_event, handle_direct_invocation
+from src.handlers.s3 import handle_s3_event
+from src.handlers.api import handle_api_gateway_event, handle_direct_invocation
 
 
 def lambda_handler(event, context):

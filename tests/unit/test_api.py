@@ -3,7 +3,7 @@ from unittest.mock import patch, MagicMock
 import json
 import base64
 import os
-from src.handlers.api_handler import handle_api_gateway_event, handle_direct_invocation
+from src.handlers.api import handle_api_gateway_event, handle_direct_invocation
 from tests.fixtures import (
     API_GATEWAY_EVENT, 
     API_GATEWAY_EVENT_BASE64,
@@ -30,7 +30,7 @@ class TestApiHandler(unittest.TestCase):
         elif 'API_KEY' in os.environ:
             del os.environ['API_KEY']
     
-    @patch('src.handlers.api_handler.convert_to_markdown')
+    @patch('src.handlers.api.convert_to_markdown')
     def test_handle_api_gateway_event_success(self, mock_convert):
         """prueba manejo exitoso de evento API Gateway"""
         # configurar mock
@@ -61,7 +61,7 @@ class TestApiHandler(unittest.TestCase):
             'test.md'
         )
     
-    @patch('src.handlers.api_handler.convert_to_markdown')
+    @patch('src.handlers.api.convert_to_markdown')
     def test_handle_api_gateway_event_base64(self, mock_convert):
         """prueba manejo de contenido base64"""
         mock_convert.return_value = {
@@ -113,7 +113,7 @@ class TestApiHandler(unittest.TestCase):
         body = json.loads(result['body'])
         self.assertEqual(body['error'], 'Missing content in request')
     
-    @patch('src.handlers.api_handler.convert_to_markdown')
+    @patch('src.handlers.api.convert_to_markdown')
     def test_handle_api_gateway_event_conversion_error(self, mock_convert):
         """prueba manejo de error en conversión"""
         mock_convert.side_effect = Exception("Conversion failed")
@@ -125,7 +125,7 @@ class TestApiHandler(unittest.TestCase):
         self.assertEqual(body['error'], 'Internal server error')
         self.assertIn('Conversion failed', body['details'])
     
-    @patch('src.handlers.api_handler.convert_to_markdown')
+    @patch('src.handlers.api.convert_to_markdown')
     def test_handle_direct_invocation_success(self, mock_convert):
         """prueba invocación directa exitosa"""
         mock_convert.return_value = {
@@ -138,7 +138,7 @@ class TestApiHandler(unittest.TestCase):
         self.assertIn('markdown', result)
         mock_convert.assert_called_once()
     
-    @patch('src.handlers.api_handler.convert_to_markdown')
+    @patch('src.handlers.api.convert_to_markdown')
     def test_handle_direct_invocation_base64(self, mock_convert):
         """prueba invocación directa con base64"""
         mock_convert.return_value = {

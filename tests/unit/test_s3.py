@@ -2,15 +2,15 @@ import unittest
 from unittest.mock import patch, MagicMock, call
 import json
 from botocore.exceptions import ClientError
-from src.handlers.s3_handler import handle_s3_event
+from src.handlers.s3 import handle_s3_event
 from tests.fixtures import S3_EVENT
 
 
 class TestS3Handler(unittest.TestCase):
     """pruebas para el manejador de eventos S3"""
     
-    @patch('src.handlers.s3_handler.s3_client')
-    @patch('src.handlers.s3_handler.convert_to_markdown')
+    @patch('src.handlers.s3.s3_client')
+    @patch('src.handlers.s3.convert_to_markdown')
     def test_handle_s3_event_success(self, mock_convert, mock_s3):
         """prueba procesamiento exitoso de evento S3"""
         # configurar mocks
@@ -48,8 +48,8 @@ class TestS3Handler(unittest.TestCase):
         self.assertEqual(put_args[1]['Key'], 'output/test-document.md')
         self.assertEqual(put_args[1]['ContentType'], 'text/markdown')
     
-    @patch('src.handlers.s3_handler.s3_client')
-    @patch('src.handlers.s3_handler.convert_to_markdown')
+    @patch('src.handlers.s3.s3_client')
+    @patch('src.handlers.s3.convert_to_markdown')
     def test_handle_s3_event_conversion_error(self, mock_convert, mock_s3):
         """prueba manejo de error en conversión"""
         # configurar mocks
@@ -74,7 +74,7 @@ class TestS3Handler(unittest.TestCase):
         self.assertEqual(error_call[1]['Key'], 'errors/test-document_error.json')
         self.assertEqual(error_call[1]['ContentType'], 'application/json')
     
-    @patch('src.handlers.s3_handler.s3_client')
+    @patch('src.handlers.s3.s3_client')
     def test_handle_s3_event_get_object_error(self, mock_s3):
         """prueba error al obtener objeto de S3"""
         # configurar mock para lanzar error
@@ -91,8 +91,8 @@ class TestS3Handler(unittest.TestCase):
         self.assertEqual(body['results'][0]['status'], 'error')
         self.assertIn('NoSuchKey', body['results'][0]['error'])
     
-    @patch('src.handlers.s3_handler.s3_client')
-    @patch('src.handlers.s3_handler.convert_to_markdown')
+    @patch('src.handlers.s3.s3_client')
+    @patch('src.handlers.s3.convert_to_markdown')
     def test_handle_s3_event_multiple_records(self, mock_convert, mock_s3):
         """prueba procesamiento de múltiples registros"""
         # crear evento con múltiples registros
@@ -125,8 +125,8 @@ class TestS3Handler(unittest.TestCase):
         self.assertEqual(mock_s3.get_object.call_count, 3)
         self.assertEqual(mock_s3.put_object.call_count, 3)
     
-    @patch('src.handlers.s3_handler.s3_client')
-    @patch('src.handlers.s3_handler.convert_to_markdown')
+    @patch('src.handlers.s3.s3_client')
+    @patch('src.handlers.s3.convert_to_markdown')
     def test_handle_s3_event_special_characters(self, mock_convert, mock_s3):
         """prueba manejo de caracteres especiales en nombres"""
         # evento con caracteres especiales codificados

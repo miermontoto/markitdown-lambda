@@ -47,7 +47,7 @@ class TestLambdaHandlerIntegration(unittest.TestCase):
         self.assertIn('metadata', body)
         self.assertIn('Converted Content', body['markdown'])
     
-    @patch('src.handlers.s3_handler.s3_client')
+    @patch('src.handlers.s3.s3_client')
     @patch('src.core.converters.markitdown')
     def test_s3_event_flow(self, mock_markitdown, mock_s3):
         """prueba flujo completo de evento S3"""
