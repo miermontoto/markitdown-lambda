@@ -22,7 +22,7 @@ class S3Handler(EventHandler):
             s3_client = boto3.client('s3')
         self.s3_client = s3_client
 
-    def can_handle(self, event: Dict[str, Any]) -> bool:
+    def can_handle(self, event: Any) -> bool:
         """
         determina si este handler puede manejar el evento
         """

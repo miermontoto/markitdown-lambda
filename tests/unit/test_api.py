@@ -1,7 +1,6 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 import json
-import base64
 import os
 from src.handlers.api import handle_api_gateway_event, handle_direct_invocation
 from tests.fixtures import (
@@ -146,7 +145,7 @@ class TestApiHandler(unittest.TestCase):
             'metadata': {'original_format': 'txt'}
         }
         
-        result = handle_direct_invocation(DIRECT_INVOCATION_EVENT_BASE64)
+        handle_direct_invocation(DIRECT_INVOCATION_EVENT_BASE64)
         
         mock_convert.assert_called_once()
         args = mock_convert.call_args[0]
@@ -164,8 +163,8 @@ class TestApiHandler(unittest.TestCase):
         for event in invalid_events:
             with self.assertRaises(ValueError) as context:
                 handle_direct_invocation(event)
-            self.assertIn("Direct invocation requires 'content' field", 
-                         str(context.exception))
+            self.assertIn("Direct invocation requires 'content' field",
+                          str(context.exception))
 
 
 if __name__ == '__main__':

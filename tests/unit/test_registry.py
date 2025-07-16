@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from src.handlers.base import EventHandler
 from src.handlers.registry import (
     HandlerRegistry, 
@@ -142,6 +142,7 @@ class TestHandlerRegistry(unittest.TestCase):
         class CatchAllHandler(EventHandler):
             def can_handle(self, event):
                 return True
+            
             def handle(self, event, context=None):
                 return {"handler": "catchall"}
         

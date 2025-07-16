@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 import os
 from src.handlers.api import ApiHandler
 from src.handlers.base import EventHandler

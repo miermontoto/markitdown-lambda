@@ -1,6 +1,5 @@
 import unittest
 import os
-from unittest.mock import patch
 from src.core.auth import validate_api_key
 
 
@@ -94,8 +93,8 @@ class TestAuth(unittest.TestCase):
         
         for headers in test_cases:
             event = {'headers': headers}
-            self.assertTrue(validate_api_key(event), 
-                          f"Failed for headers: {headers}")
+            self.assertTrue(validate_api_key(event),
+                            f"Failed for headers: {headers}")
 
 
 if __name__ == '__main__':

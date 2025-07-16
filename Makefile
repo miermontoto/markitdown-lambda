@@ -1,4 +1,4 @@
-.PHONY: help install install-dev clean test coverage
+.PHONY: help install install-dev clean test coverage lint typecheck pyright
 
 help:
 	@echo "Comandos disponibles:"
@@ -7,6 +7,9 @@ help:
 	@echo "  make clean       - Limpiar archivos temporales"
 	@echo "  make test        - Ejecutar pruebas"
 	@echo "  make coverage    - Ejecutar pruebas con reporte de cobertura"
+	@echo "  make lint        - Ejecutar linter (flake8)"
+	@echo "  make typecheck   - Ejecutar verificación de tipos (pyright)"
+	@echo "  make pyright     - Ejecutar pyright para análisis de tipos"
 
 install:
 	pnpm install
@@ -25,3 +28,12 @@ test:
 
 coverage:
 	uv run pytest tests/ --cov=src --cov-report=term-missing --cov-report=html
+
+lint:
+	uv run flake8 src/ tests/
+
+typecheck:
+	uv run pyright
+
+pyright:
+	uv run pyright

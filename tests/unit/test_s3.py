@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import patch, MagicMock
 import json
 from botocore.exceptions import ClientError
 from src.handlers.s3 import handle_s3_event
@@ -163,7 +163,7 @@ class TestS3Handler(unittest.TestCase):
             'metadata': {'original_format': 'txt', 'converted_at': '2024-01-01T12:00:00Z'}
         }
         
-        result = handle_s3_event(special_event)
+        handle_s3_event(special_event)
         
         # verificar que se decodificó correctamente
         mock_s3.get_object.assert_called_once_with(

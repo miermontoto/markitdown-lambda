@@ -11,6 +11,11 @@ markitdown = MarkItDown()
 def convert_to_markdown(content, filename=None):
     """convierte contenido a markdown usando markitdown"""
     try:
+        # inicializar variables para evitar "unbound" errors
+        text_content = None
+        binary_content = None
+        is_text = False
+        
         # mantener el contenido original en bytes y detectar si es texto
         if isinstance(content, bytes):
             try:
@@ -26,7 +31,7 @@ def convert_to_markdown(content, filename=None):
             text_content = content
 
         # si tenemos un nombre de archivo y es binario, guardarlo temporalmente
-        if filename and not is_text:
+        if filename and not is_text and binary_content is not None:
             _, ext = os.path.splitext(filename)
 
             with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as tmp:
@@ -40,14 +45,17 @@ def convert_to_markdown(content, filename=None):
         else:
             # convertir texto directamente usando stream
             # crear stream desde el contenido
-            if is_text:
+            if is_text and text_content is not None:
                 content_stream = io.BytesIO(text_content.encode('utf-8'))
             else:
                 # este caso no debería ocurrir, pero por seguridad
                 content_stream = io.BytesIO(content if isinstance(content, bytes) else str(content).encode('utf-8'))
 
             # usar convert_stream
-            result = markitdown.convert_stream(content_stream, file_extension=get_file_extension(filename) if filename else '.txt')
+            result = markitdown.convert_stream(
+                content_stream, 
+                file_extension=get_file_extension(filename) if filename else '.txt'
+            )
 
         return {
             'markdown': result.text_content,

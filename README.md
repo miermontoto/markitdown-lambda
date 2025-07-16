@@ -128,3 +128,21 @@ El reporte de cobertura muestra:
 
 - En terminal: qué líneas no están cubiertas
 - En HTML: abre `htmlcov/index.html` para ver detalles
+
+## Calidad de código
+
+```bash
+# ejecutar linter (flake8)
+make lint
+
+# verificar tipos con pyright
+make typecheck
+
+# ejecutar solo pyright
+make pyright
+```
+
+### Herramientas de calidad:
+
+- **Flake8**: Linter para detectar errores de estilo y sintaxis
+- **Pyright**: Analizador de tipos de Microsoft para Python

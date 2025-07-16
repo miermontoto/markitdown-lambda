@@ -8,7 +8,7 @@ class EventHandler(ABC):
     """
 
     @abstractmethod
-    def can_handle(self, event: Dict[str, Any]) -> bool:
+    def can_handle(self, event: Any) -> bool:
         """
         determina si este handler puede manejar el evento dado
 

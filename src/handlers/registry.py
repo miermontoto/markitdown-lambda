@@ -12,7 +12,7 @@ class HandlerRegistry:
         inicializa el registro con una lista vacía de handlers
         """
         self._handlers: List[EventHandler] = []
-        self._handler_classes: List[Type[EventHandler]] = []
+        self._handler_classes: List[tuple[Type[EventHandler], int]] = []
 
     def register(self, handler_class: Type[EventHandler], priority: int = 0) -> None:
         """

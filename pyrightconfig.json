@@ -1,0 +1,17 @@
+{
+  "exclude": [
+    "**/__pycache__",
+    "**/venv",
+    "**/.venv"
+  ],
+  "include": [
+    "src",
+    "tests"
+  ],
+  "pythonPlatform": "Linux",
+  "pythonVersion": "3.11",
+  "reportMissingImports": true,
+  "reportMissingTypeStubs": false,
+  "typeCheckingMode": "standard",
+  "useLibraryCodeForTypes": true
+}

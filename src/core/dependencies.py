@@ -1,5 +1,5 @@
 import os
-from typing import Optional, Dict, Any
+from typing import Dict, Any
 import boto3
 from functools import lru_cache
 

@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock
+from typing import Any
 from src.handlers.base import EventHandler
 
 
@@ -8,7 +8,7 @@ class ConcreteHandler(EventHandler):
     
     def __init__(self):
         self.can_handle_result = True
-        self.handle_result = {"success": True}
+        self.handle_result: Any = {"success": True}
     
     def can_handle(self, event):
         return self.can_handle_result
@@ -28,8 +28,14 @@ class TestEventHandler(unittest.TestCase):
     
     def test_abstract_methods_must_be_implemented(self):
         """verifica que las clases abstractas no se pueden instanciar"""
+        # intentar crear una clase que no implemente todos los métodos abstractos
+        class IncompleteHandler(EventHandler):
+            def can_handle(self, event):
+                return True
+            # falta implementar handle()
+        
         with self.assertRaises(TypeError):
-            EventHandler()
+            IncompleteHandler()  # type: ignore
     
     def test_can_handle_method(self):
         """prueba el método can_handle"""

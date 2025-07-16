@@ -1,8 +1,5 @@
 import unittest
 from unittest.mock import patch, MagicMock
-import base64
-import tempfile
-import os
 from src.core.converters import convert_to_markdown
 
 
@@ -71,7 +68,7 @@ class TestConverters(unittest.TestCase):
         for filename, expected_format in test_cases:
             result = convert_to_markdown("Test content", filename)
             self.assertEqual(result['metadata']['original_format'], expected_format,
-                           f"Failed for {filename}")
+                             f"Failed for {filename}")
     
     def test_convert_error_handling(self):
         """prueba manejo de errores en conversión"""
@@ -91,7 +88,7 @@ class TestConverters(unittest.TestCase):
         required_fields = ['original_format', 'converted_at', 'size', 'title']
         for field in required_fields:
             self.assertIn(field, result['metadata'],
-                         f"Missing metadata field: {field}")
+                          f"Missing metadata field: {field}")
 
 
 if __name__ == '__main__':

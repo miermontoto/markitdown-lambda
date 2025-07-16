@@ -29,8 +29,8 @@ class TestUtils(unittest.TestCase):
         
         for filename, expected in test_cases:
             result = get_file_extension(filename)
-            self.assertEqual(result, expected, 
-                           f"Failed for filename: {filename}")
+            self.assertEqual(result, expected,
+                             f"Failed for filename: {filename}")
     
     def test_get_current_timestamp(self):
         """prueba generación de timestamp"""

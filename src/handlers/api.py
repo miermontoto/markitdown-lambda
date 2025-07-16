@@ -13,17 +13,21 @@ class ApiHandler(EventHandler):
     maneja eventos de api gateway e invocaciones directas
     """
     
-    def can_handle(self, event: Dict[str, Any]) -> bool:
+    def can_handle(self, event: Any) -> bool:
         """
         determina si este handler puede manejar el evento
         soporta api gateway e invocaciones directas
         """
+        # validar que el evento es un diccionario
+        if not isinstance(event, dict):
+            return False
+            
         # es api gateway si tiene httpMethod
         if is_api_gateway_event(event):
             return True
         
         # es invocación directa si tiene content y no es evento s3
-        if isinstance(event, dict) and 'content' in event and 'Records' not in event:
+        if 'content' in event and 'Records' not in event:
             return True
         
         return False

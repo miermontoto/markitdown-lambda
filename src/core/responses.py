@@ -26,7 +26,7 @@ class ResponseBuilder:
         Returns:
             Dict con respuesta estructurada
         """
-        response = {
+        response: Dict[str, Any] = {
             'statusCode': status_code
         }
 
@@ -88,7 +88,7 @@ class ResponseBuilder:
         Returns:
             Dict con respuesta de error
         """
-        error_body = {'error': message}
+        error_body: Dict[str, Any] = {'error': message}
 
         if error_type:
             error_body['error_type'] = error_type
@@ -148,7 +148,7 @@ class ResponseBuilder:
         Returns:
             Dict con respuesta batch
         """
-        body = {'results': results}
+        body: Dict[str, Any] = {'results': results}
 
         if summary:
             body['summary'] = summary
