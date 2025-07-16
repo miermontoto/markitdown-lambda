@@ -22,6 +22,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - uses: astral-sh/setup-uv@v6
     - uses: pnpm/action-setup@v4
+      with:
+        version: 10
     - name: dependencies
       run: make install-dev
     - name: Lint with flake8
