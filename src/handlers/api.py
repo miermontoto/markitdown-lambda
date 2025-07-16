@@ -12,7 +12,7 @@ class ApiHandler(EventHandler):
     """
     maneja eventos de api gateway e invocaciones directas
     """
-    
+
     def can_handle(self, event: Any) -> bool:
         """
         determina si este handler puede manejar el evento
@@ -21,17 +21,17 @@ class ApiHandler(EventHandler):
         # validar que el evento es un diccionario
         if not isinstance(event, dict):
             return False
-            
+
         # es api gateway si tiene httpMethod
         if is_api_gateway_event(event):
             return True
-        
+
         # es invocación directa si tiene content y no es evento s3
         if 'content' in event and 'Records' not in event:
             return True
-        
+
         return False
-    
+
     def handle(self, event: Dict[str, Any], context: Optional[Any] = None) -> Any:
         """
         maneja el evento según su tipo
@@ -40,7 +40,7 @@ class ApiHandler(EventHandler):
             return self._handle_api_gateway(event)
         else:
             return self._handle_direct_invocation(event)
-    
+
     def _handle_api_gateway(self, event: Dict[str, Any]) -> Dict[str, Any]:
         """procesa requests de api gateway"""
         # headers por defecto para API Gateway
@@ -50,7 +50,7 @@ class ApiHandler(EventHandler):
             'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-API-Key',
             'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
         }
-        
+
         try:
             # validar autorización
             if not validate_api_key(event):
@@ -110,7 +110,7 @@ class ApiHandler(EventHandler):
                 details={'error': str(e)},
                 headers=api_headers
             )
-    
+
     def _handle_direct_invocation(self, event: Dict[str, Any]) -> Dict[str, Any]:
         """procesa invocaciones directas lambda"""
         # validar estructura del evento

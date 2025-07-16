@@ -140,6 +140,9 @@ make typecheck
 
 # ejecutar solo pyright
 make pyright
+
+# ejecutar todas las verificaciones (lint + typecheck + tests)
+make check
 ```
 
 ### Herramientas de calidad:

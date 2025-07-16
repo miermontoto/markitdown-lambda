@@ -1,4 +1,4 @@
-.PHONY: help install install-dev clean test coverage lint typecheck pyright
+.PHONY: help install install-dev clean test coverage lint typecheck pyright check
 
 help:
 	@echo "Comandos disponibles:"
@@ -10,6 +10,7 @@ help:
 	@echo "  make lint        - Ejecutar linter (flake8)"
 	@echo "  make typecheck   - Ejecutar verificación de tipos (pyright)"
 	@echo "  make pyright     - Ejecutar pyright para análisis de tipos"
+	@echo "  make check       - Ejecutar tests, lint y typecheck"
 
 install:
 	pnpm install
@@ -37,3 +38,6 @@ typecheck:
 
 pyright:
 	uv run pyright
+
+check: lint typecheck test
+	@echo "✓ Todas las verificaciones pasaron exitosamente"
