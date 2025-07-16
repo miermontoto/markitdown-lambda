@@ -119,7 +119,7 @@ class TestFactoryFunctions(unittest.TestCase):
         
         client = create_s3_client()
         
-        mock_boto3_client.assert_called_once_with('s3')
+        mock_boto3_client.assert_called_once_with('s3', region_name='us-east-1')
         self.assertEqual(client, mock_client)
     
     @patch('src.core.dependencies.get_config')

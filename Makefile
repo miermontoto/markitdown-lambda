@@ -40,4 +40,3 @@ pyright:
 	uv run pyright
 
 check: lint typecheck test
-	@echo "✓ Todas las verificaciones pasaron exitosamente"

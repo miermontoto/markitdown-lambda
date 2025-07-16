@@ -143,7 +143,7 @@ class TestS3HandlerInterface(unittest.TestCase):
             handler = S3Handler()
             
             # verificar que se creó cliente S3
-            mock_boto3_client.assert_called_once_with('s3')
+            mock_boto3_client.assert_called_once_with('s3', region_name='us-east-1')
             self.assertEqual(handler.s3_client, mock_default_client)
     
     def test_private_methods_exist(self):

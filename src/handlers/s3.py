@@ -19,7 +19,9 @@ class S3Handler(EventHandler):
         """
         if s3_client is None:
             import boto3
-            s3_client = boto3.client('s3')
+            import os
+            region = os.environ.get('AWS_DEFAULT_REGION') or os.environ.get('AWS_REGION', 'us-east-1')
+            s3_client = boto3.client('s3', region_name=region)
         self.s3_client = s3_client
 
     def can_handle(self, event: Any) -> bool:

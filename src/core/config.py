@@ -32,7 +32,9 @@ class ConfigService:
     def secrets_client(self):
         """lazy initialization del cliente de secrets manager"""
         if self._secrets_client is None and self._use_secrets_manager:
-            self._secrets_client = boto3.client('secretsmanager')
+            import os
+            region = os.environ.get('AWS_DEFAULT_REGION') or os.environ.get('AWS_REGION', 'us-east-1')
+            self._secrets_client = boto3.client('secretsmanager', region_name=region)
         return self._secrets_client
 
     def _load_config_secret(self) -> Dict[str, Any]:

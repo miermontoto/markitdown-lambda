@@ -84,7 +84,9 @@ def create_s3_client():
     """
     crea un cliente s3 de boto3
     """
-    return boto3.client('s3')
+    import os
+    region = os.environ.get('AWS_DEFAULT_REGION') or os.environ.get('AWS_REGION', 'us-east-1')
+    return boto3.client('s3', region_name=region)
 
 
 def create_api_key():
