@@ -25,7 +25,7 @@ provider:
     PYTHONPATH: '/opt/python'
     INPUT_BUCKET: ${self:custom.bucketName}
     OUTPUT_BUCKET: ${self:custom.bucketName}
-    API_KEY: ${env:API_KEY}
+    API_KEY: ${env:API_KEY, ''}
   iam:
     role:
       statements:
@@ -54,9 +54,9 @@ plugins:
 
 custom:
   basePath: ${env:BASE_PATH, ''}
-  bucketName: ${env:S3_BUCKET_NAME, '${self:service}-bucket'}
+  bucketName: markitdown-${self:provider.stage}
   pythonRequirements:
-    dockerizePip: non-linux
+    dockerizePip: true
     layer: true
     slim: true
     strip: false
@@ -65,15 +65,13 @@ custom:
   dotenv:
     logging: false
   customDomain:
-    apiType: rest
-    stage: prod
     domainName: ${env:CUSTOM_SUBDOMAIN}.${env:CUSTOM_DOMAIN}
     certificateName: "*.${env:CUSTOM_DOMAIN}"
     createRoute53Record: true
-    createRedirectRoute53Record: false
-    endpointType: REGIONAL
     hostedZoneId: ${env:AWS_CUSTOM_DOMAIN_ZONE_ID}
     securityPolicy: tls_1_2
+    apiType: http
+    endpointType: regional
 
 resources:
   Resources:
@@ -109,9 +107,13 @@ functions:
       - httpApi:
           path: /convert
           method: POST
+      - httpApi:
+          path: /health
+          method: GET
       # s3 events para conversión automática - todos los archivos soportados
       - s3:
           bucket: ${self:custom.bucketName}
           event: s3:ObjectCreated:*
+          existing: true
           rules:
             - prefix: input/
