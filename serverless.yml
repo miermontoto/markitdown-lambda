@@ -1,0 +1,116 @@
+service: "markdown-converter"
+frameworkVersion: "4"
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: ${env:AWS_RUNTIME, 'python3.11'}
+  architecture: ${env:AWS_ARCH, 'arm64'}
+  stage: prod
+  region: ${env:AWS_MAIN_REGION, 'eu-west-1'}
+  memorySize: ${env:AWS_MEMORY_SIZE, 1024}
+  timeout: ${env:AWS_TIMEOUT_IN_SECS, 300}
+  httpApi:
+    cors:
+      allowedOrigins:
+        - '*'
+      allowedHeaders:
+        - Content-Type
+      allowedMethods:
+        - POST
+        - OPTIONS
+  environment:
+    APP_NAME: ${env:APP_NAME, 'markdown-converter'}
+    APP_VERSION: ${env:APP_VERSION, '1.0.0'}
+    PYTHONPATH: '/opt/python'
+    INPUT_BUCKET: ${self:custom.bucketName}
+    OUTPUT_BUCKET: ${self:custom.bucketName}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - s3:GetObject
+            - s3:PutObject
+            - s3:ListBucket
+          Resource:
+            - "arn:aws:s3:::${self:custom.bucketName}/*"
+            - "arn:aws:s3:::${self:custom.bucketName}"
+  layers:
+    - Ref: PythonRequirementsLambdaLayer
+
+package:
+  individually: false
+  patterns:
+    - "!./**"
+    - handler.py
+    - requirements.txt
+
+plugins:
+  - serverless-python-requirements
+  - serverless-dotenv-plugin
+  - serverless-domain-manager
+
+custom:
+  basePath: ${env:BASE_PATH, ''}
+  bucketName: ${env:S3_BUCKET_NAME, '${self:service}-bucket'}
+  pythonRequirements:
+    dockerizePip: non-linux
+    layer: true
+    slim: true
+    strip: false
+    pipCmdExtraArgs:
+      - --no-cache-dir
+  dotenv:
+    logging: false
+  customDomain:
+    apiType: rest
+    stage: prod
+    domainName: ${env:CUSTOM_SUBDOMAIN}.${env:CUSTOM_DOMAIN}
+    certificateName: "*.${env:CUSTOM_DOMAIN}"
+    createRoute53Record: true
+    createRedirectRoute53Record: false
+    endpointType: REGIONAL
+    hostedZoneId: ${env:AWS_CUSTOM_DOMAIN_ZONE_ID}
+    securityPolicy: tls_1_2
+
+resources:
+  Resources:
+    InputBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.bucketName}
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+        LifecycleConfiguration:
+          Rules:
+            - Id: DeleteOldInputFiles
+              Status: Enabled
+              Prefix: input/
+              ExpirationInDays: 15
+            - Id: DeleteOldOutputFiles
+              Status: Enabled
+              Prefix: output/
+              ExpirationInDays: 15
+            - Id: DeleteOldErrorFiles
+              Status: Enabled
+              Prefix: errors/
+              ExpirationInDays: 15
+
+functions:
+  markdownConverter:
+    handler: handler.lambda_handler
+    events:
+      # api gateway para requests rest
+      - httpApi:
+          path: /convert
+          method: POST
+      # s3 events para conversión automática - todos los archivos soportados
+      - s3:
+          bucket: ${self:custom.bucketName}
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: input/

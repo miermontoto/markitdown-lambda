@@ -1,0 +1,26 @@
+{
+  "name": "markitdown-lambda",
+  "version": "1.0.0",
+  "author": "Juan Mier",
+  "private": true,
+  "scripts": {
+    "deploy": "serverless deploy",
+    "remove": "serverless remove",
+    "test": "serverless invoke local --function markdownConverter --path test_event.json",
+    "invoke": "serverless invoke local --function markdownConverter --path",
+    "logs": "serverless logs --function markdownConverter --tail",
+    "clean": "rm -rf .serverless node_modules/.cache __pycache__ && find . -type f -name '*.pyc' -delete"
+  },
+  "devDependencies": {
+    "serverless": "^4.0.0",
+    "serverless-python-requirements": "^6.1.0",
+    "serverless-dotenv-plugin": "^6.0.0",
+    "serverless-domain-manager": "^7.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "pnpm": {
+    "neverBuiltDependencies": []
+  }
+}
