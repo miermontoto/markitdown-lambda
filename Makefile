@@ -1,32 +1,23 @@
-.PHONY: help install deploy test clean lint format
+.PHONY: help install install-dev clean test
 
 help:
 	@echo "Comandos disponibles:"
-	@echo "  make install  - Instalar dependencias"
-	@echo "  make deploy   - Desplegar a AWS"
-	@echo "  make test     - Ejecutar pruebas"
-	@echo "  make clean    - Limpiar archivos temporales"
-	@echo "  make lint     - Verificar código"
-	@echo "  make format   - Formatear código"
+	@echo "  make install     - Instalar todas las dependencias"
+	@echo "  make install-dev - Instalar dependencias de desarrollo"
+	@echo "  make clean       - Limpiar archivos temporales"
+	@echo "  make test        - Ejecutar pruebas"
 
 install:
-	npm install
-	pip install -r requirements.txt
+	pnpm install
+	uv venv
+	uv pip install -r requirements.txt
 
-deploy:
-	npm run deploy
-
-test:
-	python -m pytest tests/
-	npm test
+install-dev: install
+	uv pip install -r requirements-dev.txt
 
 clean:
-	npm run clean
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 
-lint:
-	python -m flake8 src/
-
-format:
-	python -m black src/
+test:
+	uv run pytest tests/ -v

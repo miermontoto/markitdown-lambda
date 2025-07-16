@@ -2,17 +2,49 @@
 
 Lambda wrapper que convierte cualquier archivo a Markdown usando [markitdown de Microsoft](https://github.com/microsoft/markitdown).
 
+## Requisitos
+
+- Node.js 18+ (recomendado: usar [fnm](https://github.com/Schniz/fnm))
+- pnpm (`npm install -g pnpm`) - gestor de paquetes más rápido y eficiente
+- Python 3.11
+- AWS CLI configurado
+- Serverless Framework (`pnpm install -g serverless`)
+
 ## Setup
 
-```bash
-# instalar dependencias
-npm install
+### Instalación de dependencias
 
+```bash
+# opción 1: usando make
+make install      # instala dependencias de producción
+make install-dev  # instala también dependencias de desarrollo
+
+# opción 2: manualmente
+pnpm install                     # dependencias node
+pip install -r requirements.txt  # dependencias python
+
+# para desarrollo (incluye pytest, black, flake8)
+pip install -r requirements-dev.txt
+
+# nota: si usas uv (gestor de paquetes Python más rápido)
+uv pip install -r requirements.txt
+uv pip install -r requirements-dev.txt
+```
+
+### Configuración
+
+```bash
 # configurar entorno
 cp config/.env.example .env
 
+# editar .env con tus valores
+```
+
+### Despliegue
+
+```bash
 # desplegar en AWS
-npm run deploy
+pnpm run deploy
 ```
 
 ## Uso
@@ -74,20 +106,60 @@ La API soporta dos formas de enviar el token:
 - **Bearer Token**: `Authorization: Bearer <API_KEY>`
 - **X-API-Key**: `X-API-Key: <API_KEY>`
 
-Nota: La autorización solo aplica para requests HTTP. Los eventos de S3 y las invocaciones directas usan permisos IAM.
+*nota: la autorización solo aplica para requests HTTP. Los eventos de S3 e invocaciones directas usan permisos IAM.*
 
 ## Desarrollo local
 
 ```bash
-# probar localmente
-npm test
+# probar con evento de ejemplo
+pnpm run try
 
 # o con tu propio evento
-npm run invoke mi-evento.json
+pnpm run invoke mi-evento.json
 
 # ver logs
-npm run logs
+pnpm run logs
 
 # ver todos los comandos disponibles
-npm run
+pnpm run
 ```
+
+## Tests
+
+```bash
+# ejecutar todas las pruebas
+pnpm test
+```
+
+### Estructura de pruebas
+
+- **tests/unit/**: Pruebas unitarias para cada módulo
+  - `test_auth.py`: Autorización y API keys
+  - `test_converters.py`: Conversión a markdown
+  - `test_api_handler.py`: Manejo de API Gateway
+  - `test_s3_handler.py`: Procesamiento de S3
+  - `test_utils.py`: Funciones utilitarias
+
+- **tests/integration/**: Pruebas de integración
+  - `test_lambda_handler.py`: Flujos completos end-to-end
+
+- **tests/fixtures.py**: Datos de prueba compartidos
+
+## Dependencias
+
+### Producción
+- **markitdown**: Biblioteca de Microsoft para conversión a Markdown
+- **boto3**: AWS SDK para Python (interacción con S3)
+
+### Desarrollo
+- **pytest**: Framework de testing
+- **pytest-cov**: Cobertura de código
+- **black**: Formateador de código Python
+- **flake8**: Linter para Python
+- **mypy**: Type checking estático
+
+### Node/Serverless
+- **serverless**: Framework de deployment
+- **serverless-python-requirements**: Manejo de dependencias Python
+- **serverless-dotenv-plugin**: Variables de entorno
+- **serverless-domain-manager**: Gestión de dominios personalizados

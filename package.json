@@ -6,10 +6,9 @@
   "scripts": {
     "deploy": "serverless deploy",
     "remove": "serverless remove",
-    "test": "serverless invoke local --function markdownConverter --path tests/test_event.json",
+    "try": "serverless invoke local --function markdownConverter --path tests/test_event.json",
     "invoke": "serverless invoke local --function markdownConverter --path",
-    "logs": "serverless logs --function markdownConverter --tail",
-    "clean": "rm -rf .serverless node_modules/.cache __pycache__ && find . -type f -name '*.pyc' -delete"
+    "logs": "serverless logs --function markdownConverter --tail"
   },
   "devDependencies": {
     "serverless": "^4.0.0",

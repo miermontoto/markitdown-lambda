@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 def get_file_extension(filename):
@@ -12,7 +12,7 @@ def get_file_extension(filename):
 
 def get_current_timestamp():
     """obtiene timestamp actual en formato iso"""
-    return datetime.utcnow().isoformat() + 'Z'
+    return datetime.now(timezone.utc).isoformat() + 'Z'
 
 
 def create_api_response(status_code, body):
