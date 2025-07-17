@@ -110,7 +110,7 @@ resources:
           SecretStringTemplate: "{}"
           GenerateStringKey: "API_KEY"
           PasswordLength: 32
-          ExcludeCharacters: ' "\\/@'
+          ExcludeCharacters: ' "\\/@#$%^&*()_+-=[]{}|;:,.<>?`~'
 
 functions:
   markdownConverter:
